@@ -1,20 +1,31 @@
-import os
 import asyncio
-from aiogram import Bot, Dispatcher
-from dotenv import load_dotenv
+import logging
 
-from app.handlers import router
+from aiogram import Bot, Dispatcher
+
+from config import TOKEN
 from app.database.models import async_main
+from app.handlers import router
+from app.admin import admin
 
 
 async def main():
-    load_dotenv()
+    #создание базы данных
     await async_main()
-    bot = Bot(token=os.getenv('TG_TOKEN'))
+
+    bot = Bot(token=TOKEN)
     dp = Dispatcher()
-    dp.include_router(router)
+
+    # Подключаем обычные и админские комманды бота
+    dp.include_routers(admin, router)
+
+    # Запускаем слушатель событий
     await dp.start_polling(bot)
 
 
-if __name__ == '__main__':
-    asyncio.run(main())
+if __name__ == "__main__":
+    logging.basicConfig(level=logging.INFO)
+    try:
+        asyncio.run(main())
+    except KeyboardInterrupt:
+        print('Exit')
